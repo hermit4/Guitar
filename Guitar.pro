@@ -11,6 +11,60 @@ TEMPLATE = app
 
 CONFIG += c++11
 
+COPYRIGHT_YEAR = 2017
+VER_MAJ = 0
+VER_MIN = 0
+VER_PAT = 0
+VERSION = $${VER_MAJ}.$${VER_MIN}.$${VER_PAT}
+GIT = git --git-dir $$PWD/.git
+win32 {
+	DEVNULL = NUL
+} else {
+	DEVNULL = /dev/null
+}
+GIT_VERSION = $$system($$GIT rev-parse --short HEAD 2> $$DEVNULL)
+VERSION_SRC  = "int copyright_year = $$COPYRIGHT_YEAR;"
+VERSION_SRC += "char const product_version[] = \"$$VERSION\";"
+VERSION_SRC += "char const source_revision[] = \"$$GIT_VERSION\";"
+write_file("$$PWD/version.c", VERSION_SRC)
+
+win32 {
+	VERSION                  = 0.0.0.0
+	QMAKE_TARGET_COMPANY     = "S.Fuchita"
+	QMAKE_TARGET_DESCRIPTION = "The GUI Git Client"
+	QMAKE_TARGET_COPYRIGHT   = "Copyright (C) $$COPYRIGHT_YEAR $$QMAKE_TARGET_COMPANY (@soramimi_jp)"
+	QMAKE_TARGET_PRODUCT     = $${QMAKE_ORIG_TARGET}
+	RC_ICONS                 = Guitar.ico
+	RC_LANG                  = 1041
+	RC_CODEPAGE              = 932
+}
+macx {
+	CONFIG += app_bundle
+	ICON = Guitar.icns
+	QMAKE_TARGET_BUNDLE_PREFIX = jp.soramimi
+	QMAKE_PKGINFO_TYPEINFO     = APPL
+	PRODUCT_NAME               = $${QMAKE_ORIG_TARGET}
+	# If you want append Version Info to Info.plist
+	# append key and value to $${QMAKESPEC}/Info.plist.app
+	# <dict>
+	#    :
+	#     <key>CFBundleShortVersionString</key>
+	#     <value>@SHORT_VERSION@</value>
+	# </dict>
+}
+
+CONFIG(debug, debug|release) {
+        MOC_DIR = $$OUT_PWD/tmp/debug/moc
+        OBJECTS_DIR = $$OUT_PWD/tmp/debug/objs
+        RCC_DIR = $$OUT_PWD/tmp/debug/rcc
+        UI_DIR  = $$OUT_PWD/tmp/debug/ui
+} else {
+        MOC_DIR = $$OUT_PWD/tmp/release/moc
+        OBJECTS_DIR = $$OUT_PWD/tmp/release/objs
+        RCC_DIR = $$OUT_PWD/tmp/release/rcc
+        UI_DIR  = $$OUT_PWD/tmp/release/ui
+}
+
 unix:QMAKE_CXXFLAGS += -Werror=return-type -Werror=trigraphs
 
 linux:QTPLUGIN += ibusplatforminputcontextplugin
@@ -27,13 +81,10 @@ INCLUDEPATH += $$PWD/src
 
 win32 {
 	LIBS += advapi32.lib
-	RC_FILE = win.rc
 	QMAKE_SUBSYSTEM_SUFFIX=,5.01
 }
 
 macx {
-	QMAKE_INFO_PLIST = Info.plist
-	ICON += Guitar.icns
 	t.path=Contents/Resources
 	QMAKE_BUNDLE_DATA += t
 }
